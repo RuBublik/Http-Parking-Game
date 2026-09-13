@@ -1,0 +1,40 @@
+{
+  "spots": [
+    { "id": 101, "floor": 1, "size": "standard", "covered": true, "handicap": false, "charger": null, "status": "free" },
+    { "id": 102, "floor": 1, "size": "standard", "covered": true, "handicap": false, "charger": null, "status": "occupied" },
+    { "id": 103, "floor": 1, "size": "standard", "covered": true, "handicap": true, "charger": null, "status": "occupied" },
+    { "id": 104, "floor": 1, "size": "standard", "covered": true, "handicap": false, "charger": null, "status": "free" },
+    { "id": 105, "floor": 1, "size": "standard", "covered": true, "handicap": false, "charger": null, "status": "free" },
+    { "id": 106, "floor": 1, "size": "ev", "covered": true, "handicap": false, "charger": { "powerKw": 22, "pricePerKwh": 2 }, "status": "free" },
+    { "id": 107, "floor": 1, "size": "ev", "covered": true, "handicap": false, "charger": { "powerKw": 22, "pricePerKwh": 2 }, "status": "occupied" },
+    { "id": 108, "floor": 1, "size": "ev", "covered": true, "handicap": false, "charger": null, "status": "free" },
+    { "id": 109, "floor": 1, "size": "ev", "covered": true, "handicap": false, "charger": null, "status": "occupied" },
+    { "id": 110, "floor": 1, "size": "standard", "covered": true, "handicap": false, "charger": null, "status": "free" },
+
+    { "id": 201, "floor": 2, "size": "standard", "covered": true, "handicap": true, "charger": null, "status": "free" },
+    { "id": 202, "floor": 2, "size": "standard", "covered": true, "handicap": false, "charger": null, "status": "free" },
+    { "id": 203, "floor": 2, "size": "standard", "covered": true, "handicap": false, "charger": null, "status": "free" },
+    { "id": 204, "floor": 2, "size": "standard", "covered": true, "handicap": false, "charger": null, "status": "occupied" },
+    { "id": 205, "floor": 2, "size": "standard", "covered": true, "handicap": false, "charger": null, "status": "free" },
+    { "id": 206, "floor": 2, "size": "standard", "covered": true, "handicap": false, "charger": null, "status": "free" },
+    { "id": 207, "floor": 2, "size": "standard", "covered": true, "handicap": false, "charger": null, "status": "free" },
+    { "id": 208, "floor": 2, "size": "ev", "covered": true, "handicap": false, "charger": { "powerKw": 150, "pricePerKwh": 3 }, "status": "occupied" },
+    { "id": 209, "floor": 2, "size": "ev", "covered": true, "handicap": false, "charger": { "powerKw": 150, "pricePerKwh": 3 }, "status": "free" },
+    { "id": 210, "floor": 2, "size": "standard", "covered": true, "handicap": false, "charger": null, "status": "free" },
+
+    { "id": 301, "floor": 3, "size": "standard", "covered": false, "handicap": true, "charger": null, "status": "free" },
+    { "id": 302, "floor": 3, "size": "standard", "covered": false, "handicap": false, "charger": null, "status": "free" },
+    { "id": 303, "floor": 3, "size": "standard", "covered": false, "handicap": false, "charger": null, "status": "free" },
+    { "id": 304, "floor": 3, "size": "standard", "covered": false, "handicap": false, "charger": null, "status": "free" },
+    { "id": 305, "floor": 3, "size": "ev", "covered": false, "handicap": false, "charger": { "powerKw": 22, "pricePerKwh": 2 }, "status": "free" },
+    { "id": 306, "floor": 3, "size": "ev", "covered": false, "handicap": false, "charger": { "powerKw": 22, "pricePerKwh": 2 }, "status": "free" }
+  ],
+  "sessions": [
+    { "id": 1, "plate": "34-521-88", "spotId": 102, "ev": false, "handicap": false, "startedAt": "2026-09-01T06:15:00.000Z", "paid": false, "chargedKwh": 0 },
+    { "id": 2, "plate": "56-102-31", "spotId": 103, "ev": false, "handicap": true, "startedAt": "2026-09-01T07:40:00.000Z", "paid": false, "chargedKwh": 0 },
+    { "id": 3, "plate": "71-455-09", "spotId": 107, "ev": true, "handicap": false, "startedAt": "2026-09-01T08:05:00.000Z", "paid": false, "chargedKwh": 0 },
+    { "id": 4, "plate": "23-908-14", "spotId": 109, "ev": false, "handicap": false, "startedAt": "2026-09-01T05:30:00.000Z", "paid": false, "chargedKwh": 0 },
+    { "id": 5, "plate": "88-230-57", "spotId": 204, "ev": true, "handicap": false, "startedAt": "2026-09-01T09:10:00.000Z", "paid": false, "chargedKwh": 0 },
+    { "id": 6, "plate": "19-776-42", "spotId": 208, "ev": false, "handicap": false, "startedAt": "2026-09-01T08:50:00.000Z", "paid": false, "chargedKwh": 0 }
+  ]
+}
