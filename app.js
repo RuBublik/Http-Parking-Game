@@ -4,6 +4,7 @@ const path = require('path');
 const logger = require('morgan');
 
 const indexRouter = require('./routes/index');
+const apiRouter = require('./routes/api');
 
 const app = express();
 
@@ -17,6 +18,12 @@ app.use(express.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', indexRouter);
+app.use('/api', apiRouter);
+
+// errors in /api (e.g. broken JSON body) → JSON reply, not the HTML error page
+app.use('/api', (err, req, res, next) => {
+  res.status(err.status || 500).json({ error: err.expose ? err.message : 'Server error' });
+});
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
