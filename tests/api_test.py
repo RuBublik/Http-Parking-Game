@@ -83,6 +83,7 @@ def run_tests():
     free = free_spot("plain")
     expect("POST", "/sessions", 400)
     expect("POST", "/sessions", 400, '{"plate": }')  # broken JSON
+    expect("POST", "/sessions", 415, '{"plate": "BAD-1", "spotId": 101}', content_type="text/plain")  # not sent as JSON
     expect("POST", "/sessions", 400, {"plate": " ", "spotId": free["id"]})
     expect("POST", "/sessions", 400, {"plate": "BAD-1", "spotId": str(free["id"])})
     expect("POST", "/sessions", 400, {"plate": "BAD-1", "spotId": free["id"], "ev": "yes"})
@@ -114,6 +115,14 @@ def run_tests():
     for name, item in [("spot", spots[0]), ("session", sessions[0]), ("level", levels[0]), ("hint", hint)]:
         missing = [field for field in item if f"<code>{field}</code>" not in html]
         check(f"every {name} field from the API is on the page", not missing, missing)
+
+    section("reset")
+    parked = expect("GET", "/sessions", 200)
+    check("the tests parked more cars than the seed has", len(parked) > len(sessions), len(parked))
+    expect("POST", "/reset", 204)
+    expect("GET", f"/spots/{spots[0]['id']}", 200, status=spots[0]["status"])  # back to how it started
+    check("back to the seed's cars", len(expect("GET", "/sessions", 200)) == len(sessions))
+    expect("GET", "/reset", 405)
 
 
 if __name__ == "__main__":
