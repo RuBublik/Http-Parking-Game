@@ -13,6 +13,13 @@ app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 
 app.use(logger('dev'));
+
+// doubled slashes count as one: "/api//spots" works like "/api/spots" (only the path, not the query)
+app.use((req, res, next) => {
+  req.url = req.url.replace(/^[^?]*/, (urlPath) => urlPath.replace(/\/{2,}/g, '/'));
+  next();
+});
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, 'public')));

@@ -47,7 +47,7 @@ router.get('/:id/session', (req, res) => {
   const spot = db.findSpot(req.params.id);
   if (!spot) return res.status(404).json({ error: 'Spot not found' });
 
-  const session = db.sessions.find((s) => s.spotId === spot.id);
+  const session = db.findSessionInSpot(spot.id);
   if (!session) return res.status(404).json({ error: 'No car is parked in this spot' });
   res.json(withAmount(session));
 });

@@ -1,4 +1,5 @@
 const express = require('express');
+const db = require('../data/db');
 const { checkLevel } = require('../game/levels');
 const spotsRouter = require('./spots');
 const sessionsRouter = require('./sessions');
@@ -7,9 +8,28 @@ const levelsRouter = require('./levels');
 const router = express.Router();
 
 router.use(checkLevel); // adds the level verdict headers to requests that carry X-Level-Id
+
+// a body that is not JSON (e.g. Postman "raw → Text") → 415, instead of silently ignoring it
+router.use((req, res, next) => {
+  const hasBody = Number(req.get('Content-Length')) > 0 || req.get('Transfer-Encoding');
+  if (hasBody && !req.is('application/json')) {
+    return res.status(415).json({ error: 'Send the body as JSON (Content-Type: application/json)' });
+  }
+  next();
+});
 router.use('/spots', spotsRouter);
 router.use('/sessions', sessionsRouter);
 router.use('/levels', levelsRouter);
+
+// start over: the lot goes back to the seed data (Reset button, page load)
+router.post('/reset', (req, res) => {
+  db.reset();
+  res.status(204).end();
+});
+
+router.all('/reset', (req, res) => {
+  res.status(405).json({ error: 'Method not allowed' });
+});
 
 // unknown /api/... address → JSON 404 (not the HTML error page)
 router.use((req, res) => {

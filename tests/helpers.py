@@ -8,7 +8,8 @@ import urllib.error
 import urllib.request
 
 PORT = 1337
-BASE = f"http://localhost:{PORT}/api"
+SERVER = f"http://localhost:{PORT}"
+BASE = f"{SERVER}/api"
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 MISSING = 999999
 
@@ -18,13 +19,13 @@ section_failures = {}  # section name -> number of failed tests
 current_section = None
 
 
-def request(method, path, body=None, level=None):
+def request(method, path, body=None, level=None, content_type="application/json"):
     """Send a request. body: dict (sent as JSON) or str (sent as is). level: sent as X-Level-Id.
     Returns (status code, reply, headers)."""
     data = None
     if body is not None:
         data = (body if isinstance(body, str) else json.dumps(body)).encode()
-    headers = {"Content-Type": "application/json"}
+    headers = {"Content-Type": content_type}
     if level is not None:
         headers["X-Level-Id"] = str(level)
     req = urllib.request.Request(BASE + path, data=data, method=method, headers=headers)
@@ -34,6 +35,15 @@ def request(method, path, body=None, level=None):
     except urllib.error.HTTPError as err:
         status, text, reply_headers = err.code, err.read().decode(), err.headers
     return status, (json.loads(text) if text else None), reply_headers
+
+
+def get_page(path):
+    """GET a web page (not under /api). Returns (status code, content type, html)."""
+    try:
+        with urllib.request.urlopen(SERVER + path) as res:
+            return res.status, res.headers.get("Content-Type"), res.read().decode()
+    except urllib.error.HTTPError as err:
+        return err.code, err.headers.get("Content-Type"), err.read().decode()
 
 
 def section(name):
@@ -57,13 +67,13 @@ def has_fields(item, fields):
     return isinstance(item, dict) and all(item.get(key) == value for key, value in fields.items())
 
 
-def expect(method, path, code, body=None, level=None, passes=None, label="", **fields):
+def expect(method, path, code, body=None, level=None, passes=None, label="", content_type="application/json", **fields):
     """Send a request, check the status code and (optionally) fields of the reply.
     Example: expect("GET", "/spots/106", 200, status="occupied")
     For a list reply, every item must have the fields.
     level + passes: send X-Level-Id and check the level verdict (X-Level-Passed).
     Returns the reply."""
-    got, reply, headers = request(method, path, body, level)
+    got, reply, headers = request(method, path, body, level, content_type)
     verdict = headers.get("X-Level-Passed") == "true"
     items = reply if isinstance(reply, list) else [reply]
     ok = got == code and (not fields or all(has_fields(item, fields) for item in items))

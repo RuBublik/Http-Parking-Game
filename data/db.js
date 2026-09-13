@@ -15,6 +15,11 @@ const db = {
   findSession(id) {
     return this.sessions.find((session) => session.id === Number(id));
   },
+
+  // the session of the car parked in a spot
+  findSessionInSpot(spotId) {
+    return this.sessions.find((session) => session.spotId === Number(spotId));
+  },
 };
 
 db.reset();

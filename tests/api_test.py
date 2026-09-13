@@ -3,7 +3,7 @@ Checks general rules only, so editing seed.json should not break them.
 
 Run from the project root:  python3 tests/api_test.py
 """
-from helpers import MISSING, check, expect, request, run_with_server, section
+from helpers import MISSING, check, expect, get_page, request, run_with_server, section
 
 
 def free_spot(kind):
@@ -83,6 +83,7 @@ def run_tests():
     free = free_spot("plain")
     expect("POST", "/sessions", 400)
     expect("POST", "/sessions", 400, '{"plate": }')  # broken JSON
+    expect("POST", "/sessions", 415, '{"plate": "BAD-1", "spotId": 101}', content_type="text/plain")  # not sent as JSON
     expect("POST", "/sessions", 400, {"plate": " ", "spotId": free["id"]})
     expect("POST", "/sessions", 400, {"plate": "BAD-1", "spotId": str(free["id"])})
     expect("POST", "/sessions", 400, {"plate": "BAD-1", "spotId": free["id"], "ev": "yes"})
@@ -98,12 +99,36 @@ def run_tests():
     expect("DELETE", f"/spots/{free['id']}", 405)
     expect("GET", "/nope", 404)
 
+    section("doubled slashes count as one")
+    expect("GET", "//spots", 200)
+    expect("GET", f"/spots//{spots[0]['id']}", 200, id=spots[0]["id"])
+    expect("GET", "//levels/2/hint", 200)
+    check("GET //schemas is the schemas page", get_page("//schemas")[0] == 200)
+
     section("penalties (compared to a plain spot)")
     base = park(free_spot("plain"), "PRICE-1")["amount"]
     non_ev_on_ev_spot = park(free_spot("ev"), "PRICE-2")["amount"]
     no_permit_on_handicap_spot = park(free_spot("handicap"), "PRICE-3")["amount"]
     check("non-EV on an EV spot pays more", non_ev_on_ev_spot > base, non_ev_on_ev_spot)
     check("no permit on a handicap spot pays more", no_permit_on_handicap_spot > base, no_permit_on_handicap_spot)
+
+    section("schemas page")
+    status, content_type, html = get_page("/schemas")
+    check("GET /schemas is an HTML page", status == 200 and content_type.startswith("text/html"), f"{status} {content_type}")
+    check("rendered on the server (no <script>)", "<script" not in html)
+    levels = expect("GET", "/levels", 200)
+    hint = expect("GET", "/levels/1/hint", 200)
+    for name, item in [("spot", spots[0]), ("session", sessions[0]), ("level", levels[0]), ("hint", hint)]:
+        missing = [field for field in item if f"<code>{field}</code>" not in html]
+        check(f"every {name} field from the API is on the page", not missing, missing)
+
+    section("reset")
+    parked = expect("GET", "/sessions", 200)
+    check("the tests parked more cars than the seed has", len(parked) > len(sessions), len(parked))
+    expect("POST", "/reset", 204)
+    expect("GET", f"/spots/{spots[0]['id']}", 200, status=spots[0]["status"])  # back to how it started
+    check("back to the seed's cars", len(expect("GET", "/sessions", 200)) == len(sessions))
+    expect("GET", "/reset", 405)
 
 
 if __name__ == "__main__":

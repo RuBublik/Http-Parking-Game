@@ -1,5 +1,5 @@
 const express = require('express');
-const { levels, findLevel, publicInfo, startLevel } = require('../game/levels');
+const { levels, findLevel, publicInfo, hint } = require('../game/levels');
 
 const router = express.Router();
 
@@ -8,20 +8,15 @@ router.get('/', (req, res) => {
   res.json(levels.map(publicInfo));
 });
 
-// set the current level: resets the lot to the level's starting state
-router.put('/current', (req, res) => {
-  const { id } = req.body ?? {};
-  if (typeof id !== 'number') return res.status(400).json({ error: 'Body must have id (number)' });
-
-  const level = findLevel(id);
+// the level's solution, only when the player asks for it (Hint button)
+router.get('/:id/hint', (req, res) => {
+  const level = findLevel(req.params.id);
   if (!level) return res.status(404).json({ error: 'Level not found' });
-
-  startLevel(level);
-  res.json(publicInfo(level));
+  res.json(hint(level));
 });
 
 // known address, but a method it doesn't support
-router.all(['/', '/current'], (req, res) => {
+router.all(['/', '/:id/hint'], (req, res) => {
   res.status(405).json({ error: 'Method not allowed' });
 });
 
