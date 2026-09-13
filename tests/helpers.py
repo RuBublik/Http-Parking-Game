@@ -8,7 +8,8 @@ import urllib.error
 import urllib.request
 
 PORT = 1337
-BASE = f"http://localhost:{PORT}/api"
+SERVER = f"http://localhost:{PORT}"
+BASE = f"{SERVER}/api"
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 MISSING = 999999
 
@@ -34,6 +35,12 @@ def request(method, path, body=None, level=None):
     except urllib.error.HTTPError as err:
         status, text, reply_headers = err.code, err.read().decode(), err.headers
     return status, (json.loads(text) if text else None), reply_headers
+
+
+def get_page(path):
+    """GET a web page (not under /api). Returns (status code, content type, html)."""
+    with urllib.request.urlopen(SERVER + path) as res:
+        return res.status, res.headers.get("Content-Type"), res.read().decode()
 
 
 def section(name):

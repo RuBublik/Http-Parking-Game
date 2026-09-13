@@ -28,4 +28,23 @@ module.exports = [
       { name: 'amount', type: 'number', description: 'What the car owes: entry fee + charging + penalties' },
     ],
   },
+  {
+    name: 'level',
+    path: '/api/levels',
+    fields: [
+      { name: 'id', type: 'number', description: 'Level number, 1 to 13' },
+      { name: 'title', type: 'string', description: 'Short level name' },
+      { name: 'story', type: 'string', description: 'What the player has to do' },
+    ],
+  },
+  {
+    name: 'hint',
+    path: '/api/levels/:id/hint',
+    fields: [
+      { name: 'method', type: 'string', description: 'HTTP method, e.g. "GET"' },
+      { name: 'path', type: 'string', description: 'Address, e.g. "/api/spots"' },
+      { name: 'query', type: 'object', description: 'Query parameters, e.g. { floor: "2" } (empty if none)' },
+      { name: 'body', type: 'object or null', description: 'JSON body, or null if none' },
+    ],
+  },
 ];

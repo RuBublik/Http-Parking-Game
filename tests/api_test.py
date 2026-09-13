@@ -3,7 +3,7 @@ Checks general rules only, so editing seed.json should not break them.
 
 Run from the project root:  python3 tests/api_test.py
 """
-from helpers import MISSING, check, expect, request, run_with_server, section
+from helpers import MISSING, check, expect, get_page, request, run_with_server, section
 
 
 def free_spot(kind):
@@ -104,6 +104,16 @@ def run_tests():
     no_permit_on_handicap_spot = park(free_spot("handicap"), "PRICE-3")["amount"]
     check("non-EV on an EV spot pays more", non_ev_on_ev_spot > base, non_ev_on_ev_spot)
     check("no permit on a handicap spot pays more", no_permit_on_handicap_spot > base, no_permit_on_handicap_spot)
+
+    section("schemas page")
+    status, content_type, html = get_page("/schemas")
+    check("GET /schemas is an HTML page", status == 200 and content_type.startswith("text/html"), f"{status} {content_type}")
+    check("rendered on the server (no <script>)", "<script" not in html)
+    levels = expect("GET", "/levels", 200)
+    hint = expect("GET", "/levels/1/hint", 200)
+    for name, item in [("spot", spots[0]), ("session", sessions[0]), ("level", levels[0]), ("hint", hint)]:
+        missing = [field for field in item if f"<code>{field}</code>" not in html]
+        check(f"every {name} field from the API is on the page", not missing, missing)
 
 
 if __name__ == "__main__":
