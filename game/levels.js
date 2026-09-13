@@ -182,7 +182,7 @@ function checkLevel(req, res, next) {
   const solutions = currentSolutions(level);
   const request = {
     method: req.method,
-    path: req.originalUrl.split('?')[0].replace(/(.)\/$/, '$1'), // "/api/spots/" counts as "/api/spots"
+    path: (req.baseUrl + req.path).replace(/(.)\/$/, '$1'), // the cleaned path; "/api/spots/" counts as "/api/spots"
     query: req.query,
     body: req.body,
   };

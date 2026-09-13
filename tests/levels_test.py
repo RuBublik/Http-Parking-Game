@@ -45,6 +45,8 @@ def run_tests():
     expect("GET", f"/levels/{MISSING}/hint", 404)
     expect("POST", "/levels", 405)
     expect("POST", "/levels/1/hint", 405)
+    _, hint, _ = request("GET", "//levels/2/hint")  # a doubled slash counts as one
+    check("GET //levels/2/hint gives level 2's hint", (hint or {}).get("path") == "/api/spots/107", hint)
     _, _, headers = request("GET", "/spots")
     check("no verdict without X-Level-Id", headers.get("X-Level-Passed") is None)
     expect("POST", "/reset", 204)  # new game: all levels below share this lot
@@ -61,6 +63,7 @@ def run_tests():
     wrong("GET", "/spots/107/session", 200)  # a real address, but not the question
     hint_is("GET", "/spots/107")
     solution("GET", "/spots/107", 200, id=107)
+    solution("GET", "//spots/107", 200, id=107)  # a doubled slash is fine too
 
     level(3, "show the free spots on floor 2")
     wrong("GET", "/spots?floor=2", 200)  # free spots only

@@ -39,8 +39,11 @@ def request(method, path, body=None, level=None, content_type="application/json"
 
 def get_page(path):
     """GET a web page (not under /api). Returns (status code, content type, html)."""
-    with urllib.request.urlopen(SERVER + path) as res:
-        return res.status, res.headers.get("Content-Type"), res.read().decode()
+    try:
+        with urllib.request.urlopen(SERVER + path) as res:
+            return res.status, res.headers.get("Content-Type"), res.read().decode()
+    except urllib.error.HTTPError as err:
+        return err.code, err.headers.get("Content-Type"), err.read().decode()
 
 
 def section(name):

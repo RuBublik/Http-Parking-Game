@@ -99,6 +99,12 @@ def run_tests():
     expect("DELETE", f"/spots/{free['id']}", 405)
     expect("GET", "/nope", 404)
 
+    section("doubled slashes count as one")
+    expect("GET", "//spots", 200)
+    expect("GET", f"/spots//{spots[0]['id']}", 200, id=spots[0]["id"])
+    expect("GET", "//levels/2/hint", 200)
+    check("GET //schemas is the schemas page", get_page("//schemas")[0] == 200)
+
     section("penalties (compared to a plain spot)")
     base = park(free_spot("plain"), "PRICE-1")["amount"]
     non_ev_on_ev_spot = park(free_spot("ev"), "PRICE-2")["amount"]
