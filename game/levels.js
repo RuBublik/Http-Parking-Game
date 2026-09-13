@@ -1,12 +1,17 @@
 // Level definitions and the verdict. Server-only: the solutions must never reach the client.
 const onHeaders = require('on-headers');
 const db = require('../data/db');
+const { calculateAmount } = require('../data/pricing');
 
 const EV_PLATE = '12-345-67';
 
 // the ticket of the EV parked in level 6, found by plate (its id depends on what happened before)
+function findEvTicket() {
+  return db.sessions.find((session) => session.plate === EV_PLATE);
+}
+
 function evTicketPath(suffix = '') {
-  const ticket = db.sessions.find((session) => session.plate === EV_PLATE);
+  const ticket = findEvTicket();
   return `/api/sessions/${ticket ? ticket.id : 'none'}${suffix}`;
 }
 
@@ -14,6 +19,7 @@ const isNonEmptyString = (value) => typeof value === 'string' && value.trim() !=
 
 // solutions: the valid requests for a level. query values are strings; body values are exact
 //   values or rules; path can be a function, worked out when the request arrives.
+// hintBody: an example body for the hint, where the solution only has a rule.
 const levels = [
   {
     id: 1,
@@ -77,6 +83,7 @@ const levels = [
     story: 'The driver pays what is due.',
     // the API itself refuses less than what is due (402), so any number that gets a 200 is enough
     solutions: [{ method: 'POST', path: () => evTicketPath('/payment'), body: { amount: (amount) => typeof amount === 'number' }, status: 200 }],
+    hintBody: () => ({ amount: findEvTicket() ? calculateAmount(findEvTicket()) : 0 }),
   },
   {
     id: 10,
@@ -101,6 +108,7 @@ const levels = [
     title: 'Closed means closed',
     story: 'A driver tries to park in spot 110, which is closed for repairs. Try it.',
     solutions: [{ method: 'POST', path: '/api/sessions', body: { plate: isNonEmptyString, spotId: 110 }, status: 409 }],
+    hintBody: { plate: '98-765-43', spotId: 110 },
   },
 ];
 
@@ -118,6 +126,14 @@ function currentSolutions(level) {
     ...solution,
     path: typeof solution.path === 'function' ? solution.path() : solution.path,
   }));
+}
+
+// the hint: the level's first solution, as the request builder would send it
+function hint(level) {
+  const [solution] = currentSolutions(level);
+  let body = solution.body ?? null;
+  if (level.hintBody) body = typeof level.hintBody === 'function' ? level.hintBody() : level.hintBody;
+  return { method: solution.method, path: solution.path, query: solution.query ?? {}, body };
 }
 
 // query must have exactly the expected keys and values, in any order
@@ -163,4 +179,4 @@ function checkLevel(req, res, next) {
   next();
 }
 
-module.exports = { levels, findLevel, publicInfo, checkLevel };
+module.exports = { levels, findLevel, publicInfo, hint, checkLevel };
