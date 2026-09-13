@@ -3,13 +3,17 @@ const onHeaders = require('on-headers');
 const db = require('../data/db');
 
 const EV_PLATE = '12-345-67';
-const EV_TICKET = 7; // the seed has 6 sessions, so the EV parked in level 6 always gets id 7
+
+// the ticket of the EV parked in level 6, found by plate (its id depends on what happened before)
+function evTicketPath(suffix = '') {
+  const ticket = db.sessions.find((session) => session.plate === EV_PLATE);
+  return `/api/sessions/${ticket ? ticket.id : 'none'}${suffix}`;
+}
 
 const isNonEmptyString = (value) => typeof value === 'string' && value.trim() !== '';
 
-// solutions: the valid requests for a level (query values are strings, body values are
-//   exact values or rules). effect: what the level changes in the lot, used to build
-//   the starting state of the levels after it.
+// solutions: the valid requests for a level. query values are strings; body values are exact
+//   values or rules; path can be a function, worked out when the request arrives.
 const levels = [
   {
     id: 1,
@@ -45,44 +49,25 @@ const levels = [
     title: 'Closed for repairs',
     story: 'Spot 110 is broken. Close it for repairs.',
     solutions: [{ method: 'PATCH', path: '/api/spots/110', body: { status: 'closed' }, status: 200 }],
-    effect() {
-      db.findSpot(110).status = 'closed';
-    },
   },
   {
     id: 6,
     title: 'An EV arrives',
     story: `An electric car with plate ${EV_PLATE} parks in charger spot 106. Register it.`,
     solutions: [{ method: 'POST', path: '/api/sessions', body: { plate: EV_PLATE, spotId: 106, ev: true }, status: 201 }],
-    effect() {
-      db.sessions.push({
-        id: db.nextSessionId++,
-        plate: EV_PLATE,
-        spotId: 106,
-        ev: true,
-        handicap: false,
-        startedAt: '2026-09-01T08:30:00.000Z',
-        paid: false,
-        chargedKwh: 0,
-      });
-      db.findSpot(106).status = 'occupied';
-    },
   },
   {
     id: 7,
     title: 'Charging',
     story: 'The car from the previous level charged 20 kWh. Record it on its ticket.',
-    solutions: [{ method: 'PATCH', path: `/api/sessions/${EV_TICKET}`, body: { chargedKwh: 20 }, status: 200 }],
-    effect() {
-      db.findSession(EV_TICKET).chargedKwh = 20;
-    },
+    solutions: [{ method: 'PATCH', path: () => evTicketPath(), body: { chargedKwh: 20 }, status: 200 }],
   },
   {
     id: 8,
     title: 'The bill',
     story: 'The driver wants to leave. How much do they owe?',
     solutions: [
-      { method: 'GET', path: `/api/sessions/${EV_TICKET}`, status: 200 },
+      { method: 'GET', path: () => evTicketPath(), status: 200 },
       { method: 'GET', path: '/api/spots/106/session', status: 200 },
     ],
   },
@@ -90,25 +75,14 @@ const levels = [
     id: 9,
     title: 'Paying',
     story: 'The driver pays what is due.',
-    solutions: [{
-      method: 'POST',
-      path: `/api/sessions/${EV_TICKET}/payment`,
-      body: { amount: (amount) => typeof amount === 'number' && amount >= 60 },
-      status: 200,
-    }],
-    effect() {
-      db.findSession(EV_TICKET).paid = true;
-    },
+    // the API itself refuses less than what is due (402), so any number that gets a 200 is enough
+    solutions: [{ method: 'POST', path: () => evTicketPath('/payment'), body: { amount: (amount) => typeof amount === 'number' }, status: 200 }],
   },
   {
     id: 10,
     title: 'Leaving',
     story: 'The car leaves the lot.',
-    solutions: [{ method: 'DELETE', path: `/api/sessions/${EV_TICKET}`, status: 204 }],
-    effect() {
-      db.sessions = db.sessions.filter((session) => session.id !== EV_TICKET);
-      db.findSpot(106).status = 'free';
-    },
+    solutions: [{ method: 'DELETE', path: () => evTicketPath(), status: 204 }],
   },
   {
     id: 11,
@@ -138,10 +112,12 @@ function publicInfo(level) {
   return { id: level.id, title: level.title, story: level.story };
 }
 
-// the lot as it is when the level begins: seed + the effects of all earlier levels
-function startLevel(level) {
-  db.reset();
-  levels.filter((earlier) => earlier.id < level.id && earlier.effect).forEach((earlier) => earlier.effect());
+// the level's solutions with every path worked out for the current state of the lot
+function currentSolutions(level) {
+  return level.solutions.map((solution) => ({
+    ...solution,
+    path: typeof solution.path === 'function' ? solution.path() : solution.path,
+  }));
 }
 
 // query must have exactly the expected keys and values, in any order
@@ -171,6 +147,8 @@ function checkLevel(req, res, next) {
   const level = findLevel(req.get('X-Level-Id'));
   if (!level) return next();
 
+  // worked out now, before the request changes the lot (e.g. level 10 deletes the ticket)
+  const solutions = currentSolutions(level);
   const request = {
     method: req.method,
     path: req.originalUrl.split('?')[0].replace(/(.)\/$/, '$1'), // "/api/spots/" counts as "/api/spots"
@@ -178,11 +156,11 @@ function checkLevel(req, res, next) {
     body: req.body,
   };
   onHeaders(res, () => {
-    const passed = level.solutions.some((solution) => isSolution(solution, request, res.statusCode));
+    const passed = solutions.some((solution) => isSolution(solution, request, res.statusCode));
     res.setHeader('X-Level-Passed', String(passed));
     res.setHeader('X-Level-Message', passed ? 'Correct!' : 'Not quite, try again');
   });
   next();
 }
 
-module.exports = { levels, findLevel, publicInfo, startLevel, checkLevel };
+module.exports = { levels, findLevel, publicInfo, checkLevel };
