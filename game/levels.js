@@ -5,39 +5,39 @@ const { calculateAmount } = require('../data/pricing');
 
 const EV_PLATE = '12-345-67';
 
-// the ticket of the EV parked in level 6, found by plate (its id depends on what happened before)
-function findEvTicket() {
-  return db.sessions.find((session) => session.plate === EV_PLATE);
-}
-
-function evTicketPath(suffix = '') {
-  const ticket = findEvTicket();
-  return `/api/sessions/${ticket ? ticket.id : 'none'}${suffix}`;
+// address of the session of the car parked in a spot, e.g. sessionPath(106) → "/api/sessions/7".
+// Levels 7–10 use spot 106: level 6 only passes once the car is parked there.
+function sessionPath(spotId, suffix = '') {
+  return `/api/sessions/${db.findSessionInSpot(spotId)?.id}${suffix}`;
 }
 
 const isNonEmptyString = (value) => typeof value === 'string' && value.trim() !== '';
 
 // solutions: the valid requests for a level. query values are strings; body values are exact
 //   values or rules; path can be a function, worked out when the request arrives.
-// hintBody: an example body for the hint, where the solution only has a rule.
+// hint: what the Hint button shows ({method, path, query, body}; path and body can be functions).
+//   For now every hint is the full solution.
 const levels = [
   {
     id: 1,
     title: 'All spots',
     story: 'Show every parking spot in the lot.',
     solutions: [{ method: 'GET', path: '/api/spots', status: 200 }],
+    hint: { method: 'GET', path: '/api/spots' },
   },
   {
     id: 2,
     title: 'One spot',
     story: 'Show the details of spot 107.',
     solutions: [{ method: 'GET', path: '/api/spots/107', status: 200 }],
+    hint: { method: 'GET', path: '/api/spots/107' },
   },
   {
     id: 3,
     title: 'Free on floor 2',
     story: 'Show only the free spots on floor 2.',
     solutions: [{ method: 'GET', path: '/api/spots', query: { floor: '2', status: 'free' }, status: 200 }],
+    hint: { method: 'GET', path: '/api/spots', query: { floor: '2', status: 'free' } },
   },
   {
     id: 4,
@@ -49,66 +49,78 @@ const levels = [
       query: { size: 'ev', status: 'free', sortBy: 'price', order: 'asc' },
       status: 200,
     }],
+    hint: { method: 'GET', path: '/api/spots', query: { size: 'ev', status: 'free', sortBy: 'price', order: 'asc' } },
   },
   {
     id: 5,
     title: 'Closed for repairs',
     story: 'Spot 110 is broken. Close it for repairs.',
     solutions: [{ method: 'PATCH', path: '/api/spots/110', body: { status: 'closed' }, status: 200 }],
+    hint: { method: 'PATCH', path: '/api/spots/110', body: { status: 'closed' } },
   },
   {
     id: 6,
     title: 'An EV arrives',
     story: `An electric car with plate ${EV_PLATE} parks in charger spot 106. Register it.`,
     solutions: [{ method: 'POST', path: '/api/sessions', body: { plate: EV_PLATE, spotId: 106, ev: true }, status: 201 }],
+    hint: { method: 'POST', path: '/api/sessions', body: { plate: EV_PLATE, spotId: 106, ev: true } },
   },
   {
     id: 7,
     title: 'Charging',
     story: 'The car from the previous level charged 20 kWh. Record it on its ticket.',
-    solutions: [{ method: 'PATCH', path: () => evTicketPath(), body: { chargedKwh: 20 }, status: 200 }],
+    solutions: [{ method: 'PATCH', path: () => sessionPath(106), body: { chargedKwh: 20 }, status: 200 }],
+    hint: { method: 'PATCH', path: () => sessionPath(106), body: { chargedKwh: 20 } },
   },
   {
     id: 8,
     title: 'The bill',
     story: 'The driver wants to leave. How much do they owe?',
     solutions: [
-      { method: 'GET', path: () => evTicketPath(), status: 200 },
+      { method: 'GET', path: () => sessionPath(106), status: 200 },
       { method: 'GET', path: '/api/spots/106/session', status: 200 },
     ],
+    hint: { method: 'GET', path: () => sessionPath(106) },
   },
   {
     id: 9,
     title: 'Paying',
     story: 'The driver pays what is due.',
     // the API itself refuses less than what is due (402), so any number that gets a 200 is enough
-    solutions: [{ method: 'POST', path: () => evTicketPath('/payment'), body: { amount: (amount) => typeof amount === 'number' }, status: 200 }],
-    hintBody: () => ({ amount: findEvTicket() ? calculateAmount(findEvTicket()) : 0 }),
+    solutions: [{ method: 'POST', path: () => sessionPath(106, '/payment'), body: { amount: (amount) => typeof amount === 'number' }, status: 200 }],
+    hint: {
+      method: 'POST',
+      path: () => sessionPath(106, '/payment'),
+      body: () => ({ amount: calculateAmount(db.findSessionInSpot(106)) }), // the amount due right now
+    },
   },
   {
     id: 10,
     title: 'Leaving',
     story: 'The car leaves the lot.',
-    solutions: [{ method: 'DELETE', path: () => evTicketPath(), status: 204 }],
+    solutions: [{ method: 'DELETE', path: () => sessionPath(106), status: 204 }],
+    hint: { method: 'DELETE', path: () => sessionPath(106) },
   },
   {
     id: 11,
     title: 'Who is there?',
     story: 'Who is parked in spot 107 right now?',
     solutions: [{ method: 'GET', path: '/api/spots/107/session', status: 200 }],
+    hint: { method: 'GET', path: '/api/spots/107/session' },
   },
   {
     id: 12,
     title: 'No free rides',
     story: 'The car from the previous level tries to leave without paying. Try it and see what the server says.',
     solutions: [{ method: 'DELETE', path: '/api/sessions/3', status: 409 }],
+    hint: { method: 'DELETE', path: '/api/sessions/3' },
   },
   {
     id: 13,
     title: 'Closed means closed',
     story: 'A driver tries to park in spot 110, which is closed for repairs. Try it.',
     solutions: [{ method: 'POST', path: '/api/sessions', body: { plate: isNonEmptyString, spotId: 110 }, status: 409 }],
-    hintBody: { plate: '98-765-43', spotId: 110 },
+    hint: { method: 'POST', path: '/api/sessions', body: { plate: '98-765-43', spotId: 110 } },
   },
 ];
 
@@ -128,12 +140,15 @@ function currentSolutions(level) {
   }));
 }
 
-// the hint: the level's first solution, as the request builder would send it
+// the level's hint, worked out for the current state of the lot
 function hint(level) {
-  const [solution] = currentSolutions(level);
-  let body = solution.body ?? null;
-  if (level.hintBody) body = typeof level.hintBody === 'function' ? level.hintBody() : level.hintBody;
-  return { method: solution.method, path: solution.path, query: solution.query ?? {}, body };
+  const { method, path, query = {}, body = null } = level.hint;
+  return {
+    method,
+    path: typeof path === 'function' ? path() : path,
+    query,
+    body: typeof body === 'function' ? body() : body,
+  };
 }
 
 // query must have exactly the expected keys and values, in any order
@@ -163,7 +178,7 @@ function checkLevel(req, res, next) {
   const level = findLevel(req.get('X-Level-Id'));
   if (!level) return next();
 
-  // worked out now, before the request changes the lot (e.g. level 10 deletes the ticket)
+  // worked out now, before the request changes the lot (e.g. level 10 deletes the session)
   const solutions = currentSolutions(level);
   const request = {
     method: req.method,
