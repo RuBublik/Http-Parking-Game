@@ -22,14 +22,224 @@ td {
 th {
   background: #f3f3f3;
 }
-
-/* wide tables scroll sideways on small screens instead of breaking the page */
-.table-wrap {
-  overflow-x: auto;
+:root {
+  --bg-color: #f4f6f8;
+  --card-bg: #ffffff;
+  --text-color: #1e293b;
+  --border-color: #cbd5e1;
+  --primary-color: #2563eb;
+  --success-color: #16a34a;
+  --danger-color: #dc2626;
+  --warning-color: #d97706;
 }
 
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  line-height: 1.5;
+  padding: 24px 12px;
+  direction: ltr;
+  text-align: left;
+}
+
+.game-container {
+  max-width: 800px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.card {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.card h2 {
+  font-size: 1.25rem;
+  margin-bottom: 12px;
+}
+
+.card h3 {
+  font-size: 1rem;
+  margin-bottom: 8px;
+  color: #475569;
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* Header */
+.game-header {
+  text-align: left;
+}
+.level-indicator {
+  font-weight: 700;
+  color: var(--primary-color);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-size: 0.9rem;
+  margin-bottom: 4px;
+}
+
+/* Request Builder */
+.request-line {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+select, input, textarea {
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  padding: 10px 12px;
+  font-size: 0.95rem;
+  font-family: inherit;
+}
+.request-line select {
+  width: 120px;
+  font-weight: 700;
+  background-color: #f8fafc;
+  cursor: pointer;
+}
+.request-line input {
+  flex: 1;
+  font-family: monospace;
+}
+
+/* Query Parameters */
+.query-param-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+.query-param-row input {
+  flex: 1;
+  font-family: monospace;
+}
+
+.body-section {
+  margin-top: 16px;
+}
+textarea {
+  width: 100%;
+  font-family: monospace;
+  resize: vertical;
+}
+
+.headers-info {
+  margin-top: 16px;
+  background: #f1f5f9;
+  padding: 10px 12px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  border-left: 4px solid var(--primary-color);
+}
+
+/* Buttons */
+.actions-row {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-start;
+}
+.btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: #ffffff;
+  transition: opacity 0.15s ease;
+}
+.btn:hover {
+  opacity: 0.9;
+}
+.btn-primary { background-color: var(--primary-color); }
+.btn-secondary { background-color: #64748b; }
+.btn-success { background-color: var(--success-color); }
+.btn-danger { background-color: var(--danger-color); }
+.btn-warning { background-color: var(--warning-color); }
+
+/* Response Panel */
+.response-status {
+  margin-bottom: 10px;
+  font-weight: 600;
+}
+pre {
+  background: #0f172a;
+  color: #f8fafc;
+  padding: 16px;
+  border-radius: 6px;
+  overflow-x: auto;
+  font-family: monospace;
+  font-size: 0.9rem;
+}
+.status-success { color: var(--success-color); }
+.status-error { color: var(--danger-color); }
+
+.feedback-card {
+  text-align: left;
+}
+.feedback-message {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+
+/* Footer */
+.game-footer {
+  text-align: center;
+  margin-top: 10px;
+  font-size: 0.9rem;
+  color: #64748b;
+}
+.game-footer a {
+  color: var(--primary-color);
+  text-decoration: none;
+}
+
+/* Schema Table */
+.schema-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+.schema-table th, .schema-table td {
+  border: 1px solid var(--border-color);
+  padding: 10px;
+  text-align: left;
+}
+.schema-table th {
+  background-color: #f8fafc;
+}
+.badge {
+  background: #e2e8f0;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-family: monospace;
+  font-size: 0.85rem;
+}
+
+/* Responsive Layout */
 @media (max-width: 600px) {
-  body {
-    padding: 16px;
+  .actions-row {
+    flex-direction: column;
+  }
+  .request-line {
+    flex-direction: column;
+  }
+  .request-line select {
+    width: 100%;
   }
 }
