@@ -1,11 +1,79 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <title><%= title %></title>
-    <link rel='stylesheet' href='/stylesheets/style.css' />
-  </head>
-  <body>
-    <h1><%= title %></h1>
-    <p>Welcome to <%= title %></p>
-  </body>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HTTP Parking Lot Game</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <main class="game-container">
+    <!-- Header -->
+    <header class="game-header">
+      <div class="level-indicator" id="level-indicator">Level 1 of 13</div>
+      <h1 id="level-title">Loading level...</h1>
+    </header>
+
+    <section class="card story-card">
+      <h2>Scenario</h2>
+      <p id="level-story">Loading scenario...</p>
+    </section>
+
+    <section class="card builder-card">
+      <h2>HTTP Request Builder</h2>
+      
+      <div class="request-line">
+        <select id="http-method" aria-label="HTTP Method">
+          <option value="GET">GET</option>
+          <option value="POST">POST</option>
+          <option value="PATCH">PATCH</option>
+          <option value="DELETE">DELETE</option>
+        </select>
+        <input type="text" id="request-path" placeholder="/api/spots" aria-label="Request Path">
+      </div>
+
+      <div class="query-params-section">
+        <h3>Query Parameters</h3>
+        <div id="params-container"></div>
+        <button type="button" id="add-param-btn" class="btn btn-secondary">+ Add Param</button>
+      </div>
+
+      <div id="body-section" class="body-section hidden">
+        <h3>Request Body (JSON)</h3>
+        <textarea id="request-body" rows="5" placeholder='{\n  "key": "value"\n}'></textarea>
+      </div>
+
+      <div class="headers-info">
+        <code>X-Level-Id: <span id="header-level-id">1</span></code>
+      </div>
+    </section>
+
+    <div class="actions-row">
+      <button type="button" id="hint-btn" class="btn btn-warning">Hint</button>
+      <button type="button" id="send-btn" class="btn btn-primary">Send Request</button>
+      <button type="button" id="reset-btn" class="btn btn-danger">Reset Game</button>
+    </div>
+
+    <section class="card response-card">
+      <h2>Server Response</h2>
+      <div class="response-status">
+        <span>Status Code: </span>
+        <strong id="response-status-code">---</strong>
+      </div>
+      <pre id="response-body-json"><code>Click "Send Request" to see output...</code></pre>
+    </section>
+
+    <section id="feedback-panel" class="card feedback-card hidden">
+      <div id="feedback-message" class="feedback-message"></div>
+      <button type="button" id="next-btn" class="btn btn-success hidden">Next Level &rarr;</button>
+    </section>
+
+    <footer class="game-footer">
+      <a href="schemas" target="_blank">View API Schemas (/schemas)</a> | 
+      <a href="https://github.com" target="_blank" rel="noopener">GitHub Repository</a>
+    </footer>
+  </main>
+
+  <script type="module" src="/js/main.js"></script>
+</body>
 </html>
