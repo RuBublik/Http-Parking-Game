@@ -204,3 +204,14 @@ pre {
     width: 100%;
   }
 }
+#response-body-json {
+  max-height: 250px;
+  overflow-y: auto;
+  white-space: pre-wrap; 
+}
+.game-header-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}

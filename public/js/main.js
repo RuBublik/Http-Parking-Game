@@ -9,6 +9,6 @@ document.addEventListener('DOMContentLoaded', () => {
   ui.elements.hintBtn.addEventListener('click', () => game.getHint());
   ui.elements.resetBtn.addEventListener('click', () => game.resetGame());
   ui.elements.nextBtn.addEventListener('click', () => game.nextLevel());
-
+  ui.elements.prevBtn.addEventListener('click', () => game.prevLevel());
   game.init();
 });

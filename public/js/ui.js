@@ -21,7 +21,8 @@ export class UI {
       responseStatusCode: document.getElementById('response-status-code'),
       responseBodyJson: document.getElementById('response-body-json'),
       feedbackPanel: document.getElementById('feedback-panel'),
-      feedbackMessage: document.getElementById('feedback-message')
+      feedbackMessage: document.getElementById('feedback-message'),
+      prevBtn: document.getElementById('prev-btn')
     };
 
     this.bindEvents();
@@ -30,6 +31,39 @@ export class UI {
   bindEvents() {
     this.elements.httpMethod.addEventListener('change', () => this.toggleBodySection());
     this.elements.addParamBtn.addEventListener('click', () => this.addQueryParamRow());
+  }
+  getBuilderState() {
+    const queryParams = [];
+    this.elements.paramsContainer.querySelectorAll('.query-param-row').forEach(row => {
+      queryParams.push({
+        key: row.querySelector('.param-key').value,
+        value: row.querySelector('.param-value').value
+      });
+    });
+
+    return {
+      method: this.elements.httpMethod.value,
+      path: this.elements.requestPath.value,
+      queryParams,
+      body: this.elements.requestBody.value
+    };
+  }
+
+
+  setBuilderState(state) {
+    this.elements.httpMethod.value = state.method;
+    this.elements.requestPath.value = state.path;
+    this.toggleBodySection();
+    
+    this.elements.paramsContainer.innerHTML = '';
+    state.queryParams.forEach(p => this.addQueryParamRow(p.key, p.value));
+    this.elements.requestBody.value = state.body;
+  }
+
+  updateNavButtons(currentIndex, highestUnlocked, totalLevels) {
+    if(this.elements.prevBtn) { 
+      this.elements.prevBtn.disabled = currentIndex === 0;
+    }
   }
 
   toggleBodySection() {
@@ -61,7 +95,8 @@ export class UI {
     this.elements.paramsContainer.innerHTML = '';
     this.elements.requestBody.value = '';
     this.toggleBodySection();
-    
+    this.elements.responseStatusCode.textContent = '---';
+    this.elements.responseBodyJson.textContent = 'Click "Send Request" to see output...';
     this.elements.feedbackPanel.classList.add('hidden');
     this.elements.nextBtn.classList.add('hidden');
   }

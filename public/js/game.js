@@ -6,6 +6,8 @@ export class Game {
     this.ui = ui;
     this.levels = [];
     this.currentLevelIndex = 0;
+    this.highestUnlockedLevel = 0;
+    this.solvedStates = {};
   }
 
   async init() {
@@ -26,6 +28,14 @@ export class Game {
   startCurrentLevel() {
     const currentLevel = this.levels[this.currentLevelIndex];
     this.ui.renderLevel(currentLevel, this.levels.length);
+
+    this.ui.updateNavButtons(this.currentLevelIndex, this.highestUnlockedLevel, this.levels.length);
+
+    if (this.solvedStates[this.currentLevelIndex]) {
+      this.ui.setBuilderState(this.solvedStates[this.currentLevelIndex]);
+      const isLastLevel = this.currentLevelIndex === this.levels.length - 1;
+      this.ui.renderVerdict(true, "Level already solved! (Viewing your past solution)", isLastLevel);
+    }
   }
 
   async sendRequest() {
@@ -52,7 +62,11 @@ export class Game {
       const passed = response.headers.get('X-Level-Passed') === 'true';
       const message = response.headers.get('X-Level-Message') || '';
       if (passed) {
-      const isLastLevel = this.currentLevelIndex === this.levels.length - 1;
+        this.solvedStates[this.currentLevelIndex] = this.ui.getBuilderState();
+        this.highestUnlockedLevel = Math.max(this.highestUnlockedLevel, this.currentLevelIndex + 1);
+        this.ui.updateNavButtons(this.currentLevelIndex, this.highestUnlockedLevel, this.levels.length);
+
+        const isLastLevel = this.currentLevelIndex === this.levels.length - 1;
         if (isLastLevel) {
           this.ui.renderVerdict(true, "Great job! You've completed all stages of the game!",true);
         }else{
@@ -82,6 +96,8 @@ export class Game {
     try {
       await fetch('/api/reset', { method: 'POST' });
       this.currentLevelIndex = 0;
+      this.highestUnlockedLevel = 0;
+      this.solvedStates = {};
       if (this.levels.length > 0) {
         this.startCurrentLevel();
       }
@@ -90,6 +106,12 @@ export class Game {
     }
   }
 
+  prevLevel() {
+    if (this.currentLevelIndex > 0) {
+      this.currentLevelIndex--;
+      this.startCurrentLevel();
+    }
+  }
   nextLevel() {
     if (this.currentLevelIndex < this.levels.length - 1) {
       this.currentLevelIndex++;
