@@ -51,7 +51,7 @@ export class UI {
   }
 
   renderLevel(level, totalLevels) {
-    this.elements.levelIndicator.textContent = `שלב ${level.id} מתוך ${totalLevels}`;
+    this.elements.levelIndicator.textContent = `Level ${level.id} of ${totalLevels}`;
     this.elements.levelTitle.textContent = level.title;
     this.elements.levelStory.textContent = level.story;
     this.elements.headerLevelId.textContent = level.id;
@@ -83,22 +83,23 @@ export class UI {
 
   getRequestData() {
     const method = this.elements.httpMethod.value;
-    const path = this.elements.requestPath.value.trim();
-    
-    const queryPairs = [];
-    const rows = this.elements.paramsContainer.querySelectorAll('.query-param-row');
-    rows.forEach(row => {
-      const k = row.querySelector('.param-key').value.trim();
-      const v = row.querySelector('.param-value').value.trim();
-      if (k) queryPairs.push(`${encodeURIComponent(k)}=${encodeURIComponent(v)}`);
-    });
-    const queryString = queryPairs.length > 0 ? `?${queryPairs.join('&')}` : '';
-    const fullUrl = `${path}${queryString}`;
+    const rawPath = this.elements.requestPath.value.trim();
+    const [basePath, existingQuery = ''] = rawPath.split('?');
+    const params = new URLSearchParams(existingQuery);
 
-    let body = null;
-    if (['POST', 'PUT', 'PATCH'].includes(method)) {
-      body = this.elements.requestBody.value.trim();
-    }
+    // הוספת הפרמטרים מטבלת ה-UI
+    this.elements.paramsContainer.querySelectorAll('.query-param-row').forEach(row => {
+      const key = row.querySelector('.param-key').value.trim();
+      const value = row.querySelector('.param-value').value.trim();
+      if (key) params.append(key, value);
+    });
+
+    const queryString = params.toString();
+    const fullUrl = queryString ? `${basePath}?${queryString}` : basePath;
+
+    const hasBody = ['POST', 'PUT', 'PATCH'].includes(method);
+    const body = hasBody ? this.elements.requestBody.value.trim() : null;
+
     return { method, fullUrl, body };
   }
 
@@ -108,13 +109,15 @@ export class UI {
     this.elements.responseBodyJson.textContent = JSON.stringify(data, null, 2);
   }
 
-  renderVerdict(passed, message) {
+  renderVerdict(passed, message,isLastLevel = false) {
     this.elements.feedbackPanel.classList.remove('hidden');
     this.elements.feedbackMessage.textContent = message;
     this.elements.feedbackMessage.className = `feedback-message ${passed ? 'status-success' : 'status-error'}`;
     
-    if (passed) {
-      this.elements.nextBtn.classList.remove('hidden');
-    }
+  if (passed && !isLastLevel) {
+    this.elements.nextBtn.classList.remove('hidden');
+  } else {
+    this.elements.nextBtn.classList.add('hidden');
+  }
   }
 }

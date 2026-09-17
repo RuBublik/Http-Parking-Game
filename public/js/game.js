@@ -25,11 +25,7 @@ export class Game {
 
   startCurrentLevel() {
     const currentLevel = this.levels[this.currentLevelIndex];
-    if (currentLevel) {
-      this.ui.renderLevel(currentLevel, this.levels.length);
-    } else {
-      this.ui.renderVerdict(true, 'כל הכבוד! סיימת את כל השלבים במשחק!');
-    }
+    this.ui.renderLevel(currentLevel, this.levels.length);
   }
 
   async sendRequest() {
@@ -55,10 +51,19 @@ export class Game {
 
       const passed = response.headers.get('X-Level-Passed') === 'true';
       const message = response.headers.get('X-Level-Message') || '';
-
-      this.ui.renderVerdict(passed, message);
+      if (passed) {
+      const isLastLevel = this.currentLevelIndex === this.levels.length - 1;
+        if (isLastLevel) {
+          this.ui.renderVerdict(true, "Great job! You've completed all stages of the game!",true);
+        }else{
+          this.ui.renderVerdict(passed, message);
+        }
+      }
+      else{
+        this.ui.renderVerdict(false, message);
+      }
     } catch (err) {
-      this.ui.renderResponse(500, 'Error', { error: 'Failed to send network request' });
+      this.ui.renderVerdict(false, 'Failed to send network request')
     }
   }
 
@@ -89,8 +94,6 @@ export class Game {
     if (this.currentLevelIndex < this.levels.length - 1) {
       this.currentLevelIndex++;
       this.startCurrentLevel();
-    } else {
-      this.ui.renderVerdict(true, 'כל הכבוד! סיימת את המשחק בהצלחה!');
     }
   }
 }
