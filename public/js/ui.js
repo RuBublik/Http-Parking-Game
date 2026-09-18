@@ -143,15 +143,19 @@ export class UI {
     this.elements.responseBodyJson.textContent = JSON.stringify(data, null, 2);
   }
 
-  renderVerdict(passed, message,isLastLevel = false) {
+  showMessage(message, ok = false) {
     this.elements.feedbackPanel.classList.remove('hidden');
     this.elements.feedbackMessage.textContent = message;
-    this.elements.feedbackMessage.className = `feedback-message ${passed ? 'status-success' : 'status-error'}`;
-    
-  if (passed && !isLastLevel) {
-    this.elements.nextBtn.classList.remove('hidden');
-  } else {
-    this.elements.nextBtn.classList.add('hidden');
+    this.elements.feedbackMessage.className = `feedback-message ${ok ? 'status-success' : 'status-error'}`;
   }
+
+  renderVerdict(passed, message, isLastLevel = false) {
+    this.showMessage(message, passed);
+
+    if (passed && !isLastLevel) {
+      this.elements.nextBtn.classList.remove('hidden');
+    } else {
+      this.elements.nextBtn.classList.add('hidden');
+    }
   }
 }

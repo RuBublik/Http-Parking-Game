@@ -85,10 +85,12 @@ export class Game {
     const currentLevel = this.levels[this.currentLevelIndex];
     try {
       const res = await fetch(`/api/levels/${currentLevel.id}/hint`);
+      if (!res.ok) throw new Error(`the server answered ${res.status}`);
       const hint = await res.json();
       this.ui.fillBuilderFromHint(hint);
     } catch (err) {
       console.error('Failed to fetch hint:', err);
+      this.ui.showMessage('Could not load the hint, try again');
     }
   }
 
