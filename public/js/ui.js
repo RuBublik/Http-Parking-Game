@@ -122,7 +122,6 @@ export class UI {
     const [basePath, existingQuery = ''] = rawPath.split('?');
     const params = new URLSearchParams(existingQuery);
 
-    // הוספת הפרמטרים מטבלת ה-UI
     this.elements.paramsContainer.querySelectorAll('.query-param-row').forEach(row => {
       const key = row.querySelector('.param-key').value.trim();
       const value = row.querySelector('.param-value').value.trim();
