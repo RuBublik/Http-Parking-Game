@@ -125,6 +125,11 @@ select, input, textarea {
   color: #ffffff;
   transition: opacity 0.15s ease;
 }
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
 .btn:hover {
   opacity: 0.9;
 }

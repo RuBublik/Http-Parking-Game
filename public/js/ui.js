@@ -66,6 +66,14 @@ export class UI {
     }
   }
 
+  // the buttons are locked until the levels are loaded (the page's text is rendered
+  // by the server, so it looks ready before its JavaScript is)
+  setControlsEnabled(enabled) {
+    [this.elements.sendBtn, this.elements.hintBtn, this.elements.resetBtn].forEach((btn) => {
+      btn.disabled = !enabled;
+    });
+  }
+
   toggleBodySection() {
     const method = this.elements.httpMethod.value;
     const hasBody = ['POST', 'PUT', 'PATCH'].includes(method);

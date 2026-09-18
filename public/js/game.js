@@ -11,8 +11,10 @@ export class Game {
   }
 
   async init() {
+    this.ui.setControlsEnabled(false);
     await this.resetGame();
     await this.loadLevels();
+    this.ui.setControlsEnabled(this.levels.length > 0);
   }
 
   async loadLevels() {
@@ -22,6 +24,7 @@ export class Game {
       this.startCurrentLevel();
     } catch (err) {
       console.error('Failed to load levels:', err);
+      this.ui.showMessage('Could not load the levels, refresh the page');
     }
   }
 

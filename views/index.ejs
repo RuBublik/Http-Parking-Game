@@ -10,13 +10,13 @@
   <main class="game-container">
     <!-- Header -->
     <header class="game-header">
-      <div class="level-indicator" id="level-indicator">Level 1 of 13</div>
-      <h1 id="level-title">Loading level...</h1>
+      <div class="level-indicator" id="level-indicator">Level <%= levels[0].id %> of <%= levels.length %></div>
+      <h1 id="level-title"><%= levels[0].title %></h1>
     </header>
 
     <section class="card story-card">
       <h2>Scenario</h2>
-      <p id="level-story">Loading scenario...</p>
+      <p id="level-story"><%= levels[0].story %></p>
     </section>
 
     <section class="card builder-card">
@@ -45,7 +45,7 @@
       </div>
 
       <div class="headers-info">
-        <code>X-Level-Id: <span id="header-level-id">1</span></code>
+        <code>X-Level-Id: <span id="header-level-id"><%= levels[0].id %></span></code>
       </div>
     </section>
 
