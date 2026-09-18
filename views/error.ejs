@@ -1,3 +1,25 @@
-<h1><%= message %></h1>
-<h2><%= error.status %></h2>
-<pre><%= error.stack %></pre>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title><%= status %> — HTTP Parking Lot</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <main class="game-container">
+    <header class="game-header">
+      <div class="level-indicator"><%= status %></div>
+      <h1><%= message %></h1>
+    </header>
+
+    <section class="card">
+      <p>This address is not part of the game.</p>
+      <p>
+        <a href="/">Back to the game</a> |
+        <a href="/schemas">The resources and their fields</a>
+      </p>
+    </section>
+  </main>
+</body>
+</html>
